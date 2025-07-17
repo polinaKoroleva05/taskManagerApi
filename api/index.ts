@@ -73,6 +73,17 @@ app.post('/tasks', urlencodedParser, (req: Request, res: Response) => {
     }
 });
 
+app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
+    const id = +req.params.id;
+    if (id < base.length) {
+        base.splice(id, 1);
+        res.json(base);
+        save();
+    } else {
+        res.sendStatus(404);
+    }
+});
+
 function createTask(newTask: TaskInterface) {
     newTask.id = tmpId++;
     newTask.date = Date.now();
