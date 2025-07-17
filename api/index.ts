@@ -81,7 +81,7 @@ function patchTask(id: number, taskData: TaskInterface) {
 }
 
 function save() {
-    fs.writeFileSync('./dist/db.json', JSON.stringify(base), (err: any) => {
+    fs.writeFileSync('./db.json', JSON.stringify(base), (err: any) => {
         if (err) throw err;
     });
 }
