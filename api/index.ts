@@ -10,6 +10,8 @@ const urlencodedParser = bodyParser.urlencoded({extended: false});
 app.use(express.json());
 app.use(cors())
 let base = require('./db.json');
+const filePathInScriptDir = path.join(__dirname, 'base.json');
+console.log(filePathInScriptDir)
 let tmpId: number = 7;
 
 type Category = 'Bug' | 'Feature' | 'Documentation' | 'Refactor' | 'Test';
@@ -81,7 +83,7 @@ function patchTask(id: number, taskData: TaskInterface) {
 }
 
 function save() {
-    fs.writeFileSync('./db.json', JSON.stringify(base), (err: any) => {
+    fs.writeFileSync(filePathInScriptDir, JSON.stringify(base), (err: any) => {
         if (err) throw err;
     });
 }
