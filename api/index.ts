@@ -66,8 +66,8 @@ app.post('/tasks', urlencodedParser, (req: Request, res: Response) => {
     try {
         console.log(req);
         createTask(req.body);
-        save();
         res.sendStatus(201);
+        save();
     } catch (err) {
         res.send(err);
     }
