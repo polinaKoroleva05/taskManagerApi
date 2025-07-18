@@ -28,7 +28,7 @@ export interface TaskInterface {
     date: number | null;
 }
 
-app.get('/tasks', (res: Response) => {
+app.get('/tasks', (req: Request, res: Response) => {
     res.json(base);
 });
 
