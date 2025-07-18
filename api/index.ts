@@ -85,6 +85,15 @@ app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
 });
 
 function createTask(newTask: TaskInterface) {
+    if (
+        newTask.title == undefined ||
+        newTask.description == undefined ||
+        newTask.status == undefined ||
+        newTask.category == undefined ||
+        newTask.priority == undefined
+    ) {
+        throw new Error('invalid structure');
+    }
     newTask.id = tmpId++;
     newTask.date = Date.now();
     base.push(newTask);
@@ -92,8 +101,26 @@ function createTask(newTask: TaskInterface) {
 }
 
 function patchTask(id: number, taskData: TaskInterface) {
+    if (
+        taskData.title == undefined ||
+        taskData.description == undefined ||
+        taskData.status == undefined ||
+        taskData.category == undefined ||
+        taskData.priority == undefined
+    ) {
+        throw new Error('invalid structure');
+    }
     const idInBase = base.findIndex((task: TaskInterface) => task.id === id);
-    base[idInBase] = taskData;
+    if (idInBase !== -1) {
+        //нашли в базе такой элемент
+        base[idInBase].title = taskData.title;
+        base[idInBase].description = taskData.description;
+        base[idInBase].status = taskData.status;
+        base[idInBase].category = taskData.category;
+        base[idInBase].priority = taskData.priority;
+    } else {
+        throw new Error('not found');
+    }
 }
 
 function save() {
