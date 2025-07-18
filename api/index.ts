@@ -28,7 +28,7 @@ export interface TaskInterface {
     date: number | null;
 }
 
-app.get('/tasks', (req: Request, res: Response) => {
+app.get('/tasks', (res: Response) => {
     res.json(base);
 });
 
@@ -82,6 +82,18 @@ app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
     } else {
         res.sendStatus(404);
     }
+});
+
+app.get('/restoreDB', (res: Response) => {
+    try{
+        const baseBackup = require('./db_backup.json');
+        base = baseBackup
+        res.sendStatus(200);
+        save();
+    }catch(err){
+        res.send(err);
+    }
+
 });
 
 function createTask(newTask: TaskInterface) {
