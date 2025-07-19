@@ -105,24 +105,15 @@ function createTask(newTask: TaskInterface) {
     return newTask;
 }
 
-function patchTask(id: number, taskData: TaskInterface) {
-    if (
-        taskData.title == undefined ||
-        taskData.description == undefined ||
-        taskData.status == undefined ||
-        taskData.category == undefined ||
-        taskData.priority == undefined
-    ) {
-        throw new Error('invalid structure');
-    }
+function patchTask(id: number, taskData: Partial<TaskInterface>) {
     const idInBase = base.findIndex((task: TaskInterface) => task.id === id);
     if (idInBase !== -1) {
         //нашли в базе такой элемент
-        base[idInBase].title = taskData.title;
-        base[idInBase].description = taskData.description;
-        base[idInBase].status = taskData.status;
-        base[idInBase].category = taskData.category;
-        base[idInBase].priority = taskData.priority;
+        if(taskData.title) base[idInBase].title = taskData.title;
+        if(taskData.description) base[idInBase].description = taskData.description;
+        if(taskData.status) base[idInBase].status = taskData.status;
+        if(taskData.category) base[idInBase].category = taskData.category;
+        if(taskData.priority) base[idInBase].priority = taskData.priority;
         return base[idInBase];
     } else {
         throw new Error('not found');
