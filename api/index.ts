@@ -46,8 +46,8 @@ app.delete('/tasks/:id', (req: Request, res: Response) => {
     const deleteInd = base.findIndex((task: TaskInterface) => task.id === id);
     if (deleteInd !== -1) {
         base.splice(deleteInd, 1);
-        res.json(base);
         save();
+        res.json(base);
     } else {
         res.sendStatus(404);
     }
@@ -56,8 +56,8 @@ app.patch('/tasks/:id', (req: Request, res: Response) => {
     try {
         const id = +req.params.id;
         const updatedTask = patchTask(id, req.body);
-        res.json(updatedTask);
         save();
+        res.json(updatedTask);
     } catch (err) {
         res.send(err);
     }
@@ -66,8 +66,8 @@ app.post('/tasks', urlencodedParser, (req: Request, res: Response) => {
     try {
         console.log(req);
         const createdTask = createTask(req.body);
-        res.json(createdTask);
         save();
+        res.json(createdTask);
     } catch (err) {
         res.send(err);
     }
@@ -77,8 +77,8 @@ app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
     const id = +req.params.id;
     if (id < base.length) {
         base.splice(id, 1);
-        res.json(base);
         save();
+        res.json(base);
     } else {
         res.sendStatus(404);
     }
@@ -88,8 +88,8 @@ app.get('/restoreDB', (res: Response) => {
     try{
         const baseBackup = require('./db_backup.json');
         base = baseBackup
-        res.sendStatus(200);
         save();
+        res.sendStatus(200);
     }catch(err){
         res.send(err);
     }
@@ -137,15 +137,15 @@ function patchTask(id: number, taskData: TaskInterface) {
 }
 
 function save() {
-    fs.writeFileSync(filePathInScriptDir, JSON.stringify(base), (err: any) => {
-        if (err) throw err;
-    });
-    fs.writeFileSync('db.json', JSON.stringify(base), (err: any) => {
-        if (err) throw err;
-    });
-    fs.writeFileSync('./db.json', JSON.stringify(base), (err: any) => {
-        if (err) throw err;
-    });
+    // fs.writeFileSync(filePathInScriptDir, JSON.stringify(base), (err: any) => {
+    //     if (err) throw err;
+    // });
+    // fs.writeFileSync('db.json', JSON.stringify(base), (err: any) => {
+    //     if (err) throw err;
+    // });
+    // fs.writeFileSync('./db.json', JSON.stringify(base), (err: any) => {
+    //     if (err) throw err;
+    // });
     fs.writeFileSync('./dist/db.json', JSON.stringify(base), (err: any) => {
         if (err) throw err;
     });
