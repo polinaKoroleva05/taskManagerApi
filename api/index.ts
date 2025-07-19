@@ -2,14 +2,16 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
+const fs = require('fs');
 import {Request, Response} from 'express';
 
 
 const urlencodedParser = bodyParser.urlencoded({extended: false});
+const filePathInScriptDir = path.join(__dirname, 'db.json');
 app.use(express.json());
 app.use(cors());
 
-let base = require('./db.json');
 let tmpId: number = 7;
 
 type Category = 'Bug' | 'Feature' | 'Documentation' | 'Refactor' | 'Test';
@@ -27,11 +29,13 @@ export interface TaskInterface {
 }
 
 app.get('/tasks', (req: Request, res: Response) => {
+    let base = require('./db.json');
     res.setHeader('Cache-Control', 'no-store, max-age=0');
     res.json(base);
 });
 
 app.get('/tasks/:id', (req: Request, res: Response) => {
+    let base = require('./db.json');
     const id = +req.params.id;
     let task = base.find((task: TaskInterface) => task.id === id);
     if (task) {
@@ -42,10 +46,12 @@ app.get('/tasks/:id', (req: Request, res: Response) => {
     }
 });
 app.delete('/tasks/:id', (req: Request, res: Response) => {
+    let base = require('./db.json');
     const id = +req.params.id;
     const deleteInd = base.findIndex((task: TaskInterface) => task.id === id);
     if (deleteInd !== -1) {
         base.splice(deleteInd, 1);
+        save(base)
         res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(base);
     } else {
@@ -53,9 +59,11 @@ app.delete('/tasks/:id', (req: Request, res: Response) => {
     }
 });
 app.patch('/tasks/:id', (req: Request, res: Response) => {
+    let base = require('./db.json');
     try {
         const id = +req.params.id;
-        const updatedTask = patchTask(id, req.body);
+        const updatedTask = patchTask(base, id, req.body);
+        save(base)
         res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(updatedTask);
     } catch (err) {
@@ -63,9 +71,11 @@ app.patch('/tasks/:id', (req: Request, res: Response) => {
     }
 });
 app.post('/tasks', urlencodedParser, (req: Request, res: Response) => {
+    let base = require('./db.json');
     try {
         console.log(req);
-        const createdTask = createTask(req.body);
+        const createdTask = createTask(base, req.body);
+        save(base)
         res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(createdTask);
     } catch (err) {
@@ -74,9 +84,11 @@ app.post('/tasks', urlencodedParser, (req: Request, res: Response) => {
 });
 
 app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
+    let base = require('./db.json');
     const id = +req.params.id;
     if (id < base.length) {
         base.splice(id, 1);
+        save(base)
         res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(base);
     } else {
@@ -86,15 +98,15 @@ app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
 
 app.get('/restoreDB', (req: Request, res: Response) => {
     try {
-        const baseBackup = require('./db.json');
-        base = baseBackup;
+        const baseBackup = require('./db_backup.json');
+        save(baseBackup);
         res.sendStatus(200);
     } catch (err) {
         res.send(err);
     }
 });
 
-function createTask(newTask: TaskInterface) {
+function createTask(base: TaskInterface[], newTask: TaskInterface) {
     if (
         newTask.title == undefined ||
         newTask.description == undefined ||
@@ -110,7 +122,7 @@ function createTask(newTask: TaskInterface) {
     return newTask;
 }
 
-function patchTask(id: number, taskData: Partial<TaskInterface>) {
+function patchTask(base: TaskInterface[], id: number, taskData: Partial<TaskInterface>) {
     const idInBase = base.findIndex((task: TaskInterface) => task.id === id);
     if (idInBase !== -1) {
         //нашли в базе такой элемент
@@ -124,6 +136,31 @@ function patchTask(id: number, taskData: Partial<TaskInterface>) {
         throw new Error('not found');
     }
 }
+
+function save(base: TaskInterface[]) {
+    fs.writeFileSync(filePathInScriptDir, JSON.stringify(base), (err: any) => {
+        if (err) throw err;
+    });
+    // fs.writeFileSync('db.json', JSON.stringify(base), (err: any) => {
+    //     if (err) throw err;
+    // });
+    // fs.writeFileSync('./db.json', JSON.stringify(base), (err: any) => {
+    //     if (err) throw err;
+    // });
+    // fs.writeFileSync('./dist/db.json', JSON.stringify(base), (err: any) => {
+    //     if (err) throw err;
+    // });
+    // fs.writeFileSync('dist/db.json', JSON.stringify(base), (err: any) => {
+    //     if (err) throw err;
+    // });
+    // fs.writeFileSync('./api/db.json', JSON.stringify(base), (err: any) => {
+    //     if (err) throw err;
+    // });
+    // fs.writeFileSync('/api/db.json', JSON.stringify(base), (err: any) => {
+    //     if (err) throw err;
+    // });
+}
+
 
 app.listen(3000, () => console.log('Server ready on port 3000.'));
 module.exports = app;
