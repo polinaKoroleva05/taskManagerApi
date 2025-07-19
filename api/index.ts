@@ -79,9 +79,9 @@ app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
     }
 });
 
-app.get('/restoreDB', (res: Response) => {
+app.get('/restoreDB', (req: Request, res: Response) => {
     try {
-        const baseBackup = require('./db_backup.json');
+        const baseBackup = require('./db.json');
         base = baseBackup;
         res.sendStatus(200);
     } catch (err) {
