@@ -55,8 +55,8 @@ app.delete('/tasks/:id', (req: Request, res: Response) => {
 app.patch('/tasks/:id', (req: Request, res: Response) => {
     try {
         const id = +req.params.id;
-        patchTask(id, req.body);
-        res.sendStatus(201);
+        const updatedTask = patchTask(id, req.body);
+        res.json(updatedTask);
         save();
     } catch (err) {
         res.send(err);
@@ -65,8 +65,8 @@ app.patch('/tasks/:id', (req: Request, res: Response) => {
 app.post('/tasks', urlencodedParser, (req: Request, res: Response) => {
     try {
         console.log(req);
-        createTask(req.body);
-        res.sendStatus(201);
+        const createdTask = createTask(req.body);
+        res.json(createdTask);
         save();
     } catch (err) {
         res.send(err);
@@ -109,7 +109,7 @@ function createTask(newTask: TaskInterface) {
     newTask.id = tmpId++;
     newTask.date = Date.now();
     base.push(newTask);
-    return newTask.id;
+    return newTask;
 }
 
 function patchTask(id: number, taskData: TaskInterface) {
@@ -130,6 +130,7 @@ function patchTask(id: number, taskData: TaskInterface) {
         base[idInBase].status = taskData.status;
         base[idInBase].category = taskData.category;
         base[idInBase].priority = taskData.priority;
+        return base[idInBase]
     } else {
         throw new Error('not found');
     }
