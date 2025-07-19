@@ -99,7 +99,7 @@ function createTask(newTask: TaskInterface) {
     ) {
         throw new Error('invalid structure');
     }
-    newTask.id = tmpId++;
+    newTask.id = ++tmpId;
     newTask.date = Date.now();
     base.push(newTask);
     return newTask;
