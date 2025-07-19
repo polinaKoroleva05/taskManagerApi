@@ -1,10 +1,9 @@
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
-const path = require('path');
-const fs = require('fs');
 const cors = require('cors');
 import {Request, Response} from 'express';
+
 
 const urlencodedParser = bodyParser.urlencoded({extended: false});
 app.use(express.json());
@@ -28,6 +27,7 @@ export interface TaskInterface {
 }
 
 app.get('/tasks', (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 'no-store, max-age=0');
     res.json(base);
 });
 
@@ -35,6 +35,7 @@ app.get('/tasks/:id', (req: Request, res: Response) => {
     const id = +req.params.id;
     let task = base.find((task: TaskInterface) => task.id === id);
     if (task) {
+        res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(task);
     } else {
         res.sendStatus(404);
@@ -45,6 +46,7 @@ app.delete('/tasks/:id', (req: Request, res: Response) => {
     const deleteInd = base.findIndex((task: TaskInterface) => task.id === id);
     if (deleteInd !== -1) {
         base.splice(deleteInd, 1);
+        res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(base);
     } else {
         res.sendStatus(404);
@@ -54,6 +56,7 @@ app.patch('/tasks/:id', (req: Request, res: Response) => {
     try {
         const id = +req.params.id;
         const updatedTask = patchTask(id, req.body);
+        res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(updatedTask);
     } catch (err) {
         res.send(err);
@@ -63,6 +66,7 @@ app.post('/tasks', urlencodedParser, (req: Request, res: Response) => {
     try {
         console.log(req);
         const createdTask = createTask(req.body);
+        res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(createdTask);
     } catch (err) {
         res.send(err);
@@ -73,6 +77,7 @@ app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
     const id = +req.params.id;
     if (id < base.length) {
         base.splice(id, 1);
+        res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(base);
     } else {
         res.sendStatus(404);
