@@ -4,12 +4,22 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
+const nameOfLocalStorage = 'taskManagerSiriur';
 import {Request, Response} from 'express';
 
 const urlencodedParser = bodyParser.urlencoded({extended: false});
 app.use(express.json());
 app.use(cors());
-let base = require('./db.json');
+
+if (
+    !localStorage.getItem(nameOfLocalStorage) ||
+    localStorage.getItem(nameOfLocalStorage) === undefined
+) {
+    const tasksDefault = require('./db.json');
+    localStorage.setItem(nameOfLocalStorage, JSON.stringify(tasksDefault));
+}
+let base = JSON.parse(localStorage.getItem(nameOfLocalStorage)!);
+
 const filePathInScriptDir = path.join(__dirname, 'base.json');
 console.log(filePathInScriptDir);
 let tmpId: number = 7;
@@ -85,15 +95,14 @@ app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
 });
 
 app.get('/restoreDB', (res: Response) => {
-    try{
+    try {
         const baseBackup = require('./db_backup.json');
-        base = baseBackup
+        base = baseBackup;
         save();
         res.sendStatus(200);
-    }catch(err){
+    } catch (err) {
         res.send(err);
     }
-
 });
 
 function createTask(newTask: TaskInterface) {
@@ -130,34 +139,14 @@ function patchTask(id: number, taskData: TaskInterface) {
         base[idInBase].status = taskData.status;
         base[idInBase].category = taskData.category;
         base[idInBase].priority = taskData.priority;
-        return base[idInBase]
+        return base[idInBase];
     } else {
         throw new Error('not found');
     }
 }
 
 function save() {
-    // fs.writeFileSync(filePathInScriptDir, JSON.stringify(base), (err: any) => {
-    //     if (err) throw err;
-    // });
-    // fs.writeFileSync('db.json', JSON.stringify(base), (err: any) => {
-    //     if (err) throw err;
-    // });
-    // fs.writeFileSync('./db.json', JSON.stringify(base), (err: any) => {
-    //     if (err) throw err;
-    // });
-    fs.writeFileSync('./dist/db.json', JSON.stringify(base), (err: any) => {
-        if (err) throw err;
-    });
-    fs.writeFileSync('dist/db.json', JSON.stringify(base), (err: any) => {
-        if (err) throw err;
-    });
-    fs.writeFileSync('./api/db.json', JSON.stringify(base), (err: any) => {
-        if (err) throw err;
-    });
-    fs.writeFileSync('/api/db.json', JSON.stringify(base), (err: any) => {
-        if (err) throw err;
-    });
+    localStorage.setItem(nameOfLocalStorage, JSON.stringify(base));
 }
 
 app.listen(3000, () => console.log('Server ready on port 3000.'));
