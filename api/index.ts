@@ -4,24 +4,13 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
-const nameOfLocalStorage = 'taskManagerSiriur';
 import {Request, Response} from 'express';
 
 const urlencodedParser = bodyParser.urlencoded({extended: false});
 app.use(express.json());
 app.use(cors());
 
-if (
-    !localStorage.getItem(nameOfLocalStorage) ||
-    localStorage.getItem(nameOfLocalStorage) === undefined
-) {
-    const tasksDefault = require('./db.json');
-    localStorage.setItem(nameOfLocalStorage, JSON.stringify(tasksDefault));
-}
-let base = JSON.parse(localStorage.getItem(nameOfLocalStorage)!);
-
-const filePathInScriptDir = path.join(__dirname, 'base.json');
-console.log(filePathInScriptDir);
+let base = require('./db.json');
 let tmpId: number = 7;
 
 type Category = 'Bug' | 'Feature' | 'Documentation' | 'Refactor' | 'Test';
@@ -56,7 +45,6 @@ app.delete('/tasks/:id', (req: Request, res: Response) => {
     const deleteInd = base.findIndex((task: TaskInterface) => task.id === id);
     if (deleteInd !== -1) {
         base.splice(deleteInd, 1);
-        save();
         res.json(base);
     } else {
         res.sendStatus(404);
@@ -66,7 +54,6 @@ app.patch('/tasks/:id', (req: Request, res: Response) => {
     try {
         const id = +req.params.id;
         const updatedTask = patchTask(id, req.body);
-        save();
         res.json(updatedTask);
     } catch (err) {
         res.send(err);
@@ -76,7 +63,6 @@ app.post('/tasks', urlencodedParser, (req: Request, res: Response) => {
     try {
         console.log(req);
         const createdTask = createTask(req.body);
-        save();
         res.json(createdTask);
     } catch (err) {
         res.send(err);
@@ -87,7 +73,6 @@ app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
     const id = +req.params.id;
     if (id < base.length) {
         base.splice(id, 1);
-        save();
         res.json(base);
     } else {
         res.sendStatus(404);
@@ -98,7 +83,6 @@ app.get('/restoreDB', (res: Response) => {
     try {
         const baseBackup = require('./db_backup.json');
         base = baseBackup;
-        save();
         res.sendStatus(200);
     } catch (err) {
         res.send(err);
@@ -143,10 +127,6 @@ function patchTask(id: number, taskData: TaskInterface) {
     } else {
         throw new Error('not found');
     }
-}
-
-function save() {
-    localStorage.setItem(nameOfLocalStorage, JSON.stringify(base));
 }
 
 app.listen(3000, () => console.log('Server ready on port 3000.'));
