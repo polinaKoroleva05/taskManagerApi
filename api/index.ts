@@ -60,7 +60,7 @@ app.get('/tasks/:id', (req: Request, res: Response) => {
 });
 
 /**
- * Delete task by id, if cant find - send status 404. 
+ * Delete task by id, if cant find - send status 404.
  * If cause error, send status 500
  */
 app.delete('/tasks/:id', (req: Request, res: Response) => {
@@ -74,8 +74,13 @@ app.delete('/tasks/:id', (req: Request, res: Response) => {
             res.setHeader('Cache-Control', 'no-store, max-age=0');
             res.json(base);
         } catch (err: any) {
-            console.log(err);
-            res.sendStatus(500);
+            if (err.code === 'EROFS') {
+                res.setHeader('Cache-Control', 'no-store, max-age=0');
+                res.json(base);
+            } else {
+                console.log(err);
+                res.sendStatus(500);
+            }
         }
     } else {
         res.sendStatus(404);
@@ -83,7 +88,7 @@ app.delete('/tasks/:id', (req: Request, res: Response) => {
 });
 
 /**
- * Patch task by id, if cant find - send status 404. 
+ * Patch task by id, if cant find - send status 404.
  * If cause another error, send status 500
  */
 app.patch('/tasks/:id', (req: Request, res: Response) => {
@@ -96,7 +101,10 @@ app.patch('/tasks/:id', (req: Request, res: Response) => {
         res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(updatedTask);
     } catch (err: any) {
-        if (err.message === 'Not found') {
+        if (err.code === 'EROFS') {
+            res.setHeader('Cache-Control', 'no-store, max-age=0');
+            res.json(updatedTask);
+        } else if (err.message === 'Not found') {
             res.sendStatus(404);
         } else {
             console.log(err);
@@ -119,7 +127,10 @@ app.post('/tasks', urlencodedParser, (req: Request, res: Response) => {
         res.setHeader('Cache-Control', 'no-store, max-age=0');
         res.json(createdTask);
     } catch (err: any) {
-        if (err.message === 'Invalid structure') {
+        if (err.code === 'EROFS') {
+            res.setHeader('Cache-Control', 'no-store, max-age=0');
+            res.json(createdTask);
+        } else if (err.message === 'Invalid structure') {
             res.sendStatus(400);
         } else {
             console.log(err);
@@ -129,7 +140,7 @@ app.post('/tasks', urlencodedParser, (req: Request, res: Response) => {
 });
 
 /**
- * Dev function. Delete task by index in array, if cant find - send status 404. 
+ * Dev function. Delete task by index in array, if cant find - send status 404.
  * If cause error, send status 500. Needed when an invalid date without ID is added to the array.
  */
 app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
@@ -142,8 +153,13 @@ app.delete('/tasks/devDelete/:id', (req: Request, res: Response) => {
             res.setHeader('Cache-Control', 'no-store, max-age=0');
             res.json(base);
         } catch (err: any) {
+            if (err.code === 'EROFS') {
+            res.setHeader('Cache-Control', 'no-store, max-age=0');
+            res.json(base);
+        } else {
             console.log(err);
             res.sendStatus(500);
+        }
         }
     } else {
         res.sendStatus(404);
@@ -158,17 +174,19 @@ app.get('/restoreDB', (req: Request, res: Response) => {
         const baseBackup = require('./db_backup.json');
         save(baseBackup);
         res.sendStatus(200);
-    } catch (err) {
-        res.send(err);
+    } catch (err: any) {
+        if (err.code !== 'EROFS') {
+            res.send(err);
+        }
     }
 });
 
 /**
- * Function that adds the required fields to the task and adds it to the database. 
+ * Function that adds the required fields to the task and adds it to the database.
  * The function checks that all required fields are passed, otherwise it throws an error 'Invalid structure'
  * @param {TaskInterface[]} base - Data base
  * @param {TaskInterface} newTask - Incomplete task data received from the client
- * @returns 
+ * @returns
  */
 function createTask(base: TaskInterface[], newTask: TaskInterface) {
     if (
@@ -190,10 +208,10 @@ function createTask(base: TaskInterface[], newTask: TaskInterface) {
  * A function that makes changes to an existing task
  * If taskData is undefined, throws error 'TaskData undefinded'.
  * If there is no task with the specified id in the database, throws error 'Not found'.
- * @param {TaskInterface[]} base - Data base 
+ * @param {TaskInterface[]} base - Data base
  * @param {number} id - Id of task that need to be changed
  * @param {Partial<TaskInterface>} taskData - Contains fields that need to be changed
- * @returns 
+ * @returns
  */
 function patchTask(
     base: TaskInterface[],
@@ -219,9 +237,9 @@ function patchTask(
 }
 
 /**
- * Save data base to file. 
+ * Save data base to file.
  * (In vercel causes error 'EROFS', that can be ignored. On server this error dont causes.)
- * @param {TaskInterface[]} base - Data base  
+ * @param {TaskInterface[]} base - Data base
  */
 function save(base: TaskInterface[]) {
     fs.writeFileSync(filePathInScriptDir, JSON.stringify(base), (err: any) => {
